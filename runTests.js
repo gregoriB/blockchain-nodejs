@@ -1,5 +1,4 @@
 //TODO: Make fancy recursive function that gets test files by the "test" in the file name
-
 const log = console.log;
 console.logAssert = log;
 console.logResult = log;
