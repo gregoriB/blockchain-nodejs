@@ -4,8 +4,8 @@ Uses a custom testing framework(still a work in progress).
 
 To run tests, run `node ./runTests.js`
 
-Currently the test results for each test suite must be imported into the file and manually added to the results config.
-To only display the results of specific tests, add those to the command: `node ./runTests.js blockchain transactions`
+Test files must export the test results using the `TestSuite().getResults` methods.  Tests are run automatically as long as the file name contains `.test.js`
+Test file can be run individually if the name is added as an argument in the command line, eg: `node ./runTests.js blockchain` would only run the `blockchain.test.js` file.
 
 Flags can also be added for configuration of the console output: `node ./runTests.js -no-errors -no-assert-logs`
 

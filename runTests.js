@@ -1,63 +1,99 @@
-//TODO: Make fancy recursive function that gets test files by the "test" in the file name
-const log = console.log;
-console.logAssert = log;
-console.logResult = log;
-console.logTest = log;
-
-const args = process.argv.slice(2);
-const tests = args.filter(arg => !arg.includes('-'));
-const flags = args.filter(arg => arg.includes('-'));
-
-flags.forEach(handleFlag);
-
+const fs = require('fs');
+const path = require('path');
 const TestSuite = require('./lib/TestSuite');
-const transactionTestResults = require('./lib/tests/transaction.test');
-const blockTestResults = require('./lib/tests/block.test');
-const blockchainTestResults = require('./lib/tests/blockchain.test');
 
-const results = {
-    block: blockTestResults,
-    blockchain: blockchainTestResults,
-    transaction: transactionTestResults
+init();
+
+function init() {
+    /*** Function call order matters here ***/
+    setupCustomLogs();
+    const args = process.argv.slice(2);
+    applyFlags(args);
+    const results = getTestResults(args);
+    runTests(results);
+}
+
+function runTests(results) {
+    const testSuite = new TestSuite();
+    testSuite.logTestResults(results);
 }
 
 /*
- * Specify which test results to display, eg: node runTests.js blockchain
- * Otherwise all test results will be displayed.
- * All tests will still run no matter what because the results from each file are being
- * imported, and right now that causes logs for each test to always be displayed.
- * That will change once test files are being run selectively based on the name.
+ * Create custom console log methods to be used automatically
+ * by the test framework. 
  */
-let testResultsFromArgs = tests.map(test => results[test]);
-testResultsFromArgs = testResultsFromArgs.length ? testResultsFromArgs : Object.values(results);
+function setupCustomLogs() {
+    const log = console.log;
+    console.logAssert = log;
+    console.logResult = log;
+    console.logTest = log;
+}
 
-const testSuite = new TestSuite();
-testSuite.logTestResults(testResultsFromArgs);
-
-function handleFlag(flag) {
-    switch(flag) {
-        case '-no-logs':
-            return disableConsoleProperty('log');
-        case '-no-errors':
-            return disableConsoleProperty('error');
-        case '-no-assert-logs':
-            return disableConsoleProperty('logAssert');
-        case '-no-test-logs':
-            return disableConsoleProperty('logTest');
-        case '-no-result-logs':
-            return disableConsoleProperty('logResult');
-        case '-only-result-logs':
-            const disabledProperties = [
-                'log',
-                'error',
-                'logAssert',
-                'logTest',
-            ];
-            disabledProperties.forEach(disableConsoleProperty);
-            return;
+/*
+ * Apply flags input in the command line.  eg: "-no-logs" disables all user
+ * input console logs.
+ */
+function applyFlags(args) {
+    const flags = args.filter(arg => arg.includes('-'));
+    const methods = {
+        '-no-logs': () => disableConsoleProperty('log'),
+        '-no-errors': () => disableConsoleProperty('error'),
+        '-no-test-logs': () => disableConsoleProperty('logTest'),
+        '-no-assert-logs': () => disableConsoleProperty('logAssert'),
+        '-no-result-logs': () => disableConsoleProperty('logResult'),
+        '-only-result-logs': () => {
+            ['log',
+            'error',
+            'logTest',
+            'logAssert'].forEach(disableConsoleProperty);
+        }
     }
+    flags.forEach(flag => {
+        methods[flag]?.();
+    });
+}
+
+/*
+ * Gets the test results from the test files.  Filters by test file name 
+ * args input in the command line, eg: "blockchain"
+ */
+function getTestResults(args) {
+    args = args.filter(arg => !arg.includes('-'));
+    let testFiles = traverseDir(__dirname);
+
+    if (args.length) {
+        testFiles = testFiles.filter(file => args.some(arg => {
+            arg = `${arg}.test.js`.toLowerCase();
+            const fileSplit = file.split('/');
+            return arg === fileSplit[fileSplit.length - 1].toLowerCase();
+        }));
+    }
+
+    return testFiles.map(file => require(file));
 }
 
 function disableConsoleProperty(property) {
     console[property] = function() {};
+}
+
+/*
+ * Recursively walk from the root directly and build a list of test files.
+ */
+function traverseDir(dir, root = ".") {
+    const skips = ['node_modules', '.git'];
+    const files = [];
+    fs.readdirSync(dir).forEach(file => {
+        const re = /.test.js/;
+        const fullPath = path.join(dir, file);
+        const isDirectory = fs.lstatSync(fullPath).isDirectory();
+        const isSkipped = skips.some(skip => file.match(new RegExp(skip)));
+        if (isDirectory && !isSkipped) {
+            root = `${root}/${file}`;
+            files.push(traverseDir(fullPath, root));
+            files.flat();
+        } else if (!isDirectory && file.match(re)) {
+            files.push(`${root}/${file}`)
+        }
+    });
+    return files.flat();
 }
