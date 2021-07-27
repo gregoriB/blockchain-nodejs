@@ -2,10 +2,11 @@ Very basic token blockchain built with Nodejs.
 
 Uses a custom testing framework(still a work in progress).
 
-To run tests, run `node ./runTests.js`
+To run tests, run: `node ./runTests.js`
 
 Test files must export the test results using the `TestSuite().getResults` methods.  Tests are run automatically as long as the file name contains `.test.js`
-Test file can be run individually if the name is added as an argument in the command line, eg: `node ./runTests.js blockchain` would only run the `blockchain.test.js` file.
+
+A test file can be run individually if the name is added as an argument in the command line, eg: `node ./runTests.js blockchain` would only run the `blockchain.test.js` file.
 
 Flags can also be added for configuration of the console output: `node ./runTests.js -no-errors -no-assert-logs`
 

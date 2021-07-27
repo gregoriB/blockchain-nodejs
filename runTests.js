@@ -59,7 +59,7 @@ function applyFlags(args) {
  */
 function getTestResults(args) {
     args = args.filter(arg => !arg.includes('-'));
-    let testFiles = traverseDir(__dirname);
+    let testFiles = findTestFiles(__dirname);
 
     if (args.length) {
         testFiles = testFiles.filter(file => args.some(arg => {
@@ -79,7 +79,7 @@ function disableConsoleProperty(property) {
 /*
  * Recursively walk from the root directly and build a list of test files.
  */
-function traverseDir(dir, root = ".") {
+function findTestFiles(dir, root = ".") {
     const skips = ['node_modules', '.git'];
     const files = [];
     fs.readdirSync(dir).forEach(file => {
@@ -89,7 +89,7 @@ function traverseDir(dir, root = ".") {
         const isSkipped = skips.some(skip => file.match(new RegExp(skip)));
         if (isDirectory && !isSkipped) {
             root = `${root}/${file}`;
-            files.push(traverseDir(fullPath, root));
+            files.push(findTestFiles(fullPath, root));
             files.flat();
         } else if (!isDirectory && file.match(re)) {
             files.push(`${root}/${file}`)
