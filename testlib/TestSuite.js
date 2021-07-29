@@ -1,4 +1,4 @@
-const { PASSED, FAILED, ASSERTIONS, TESTS } = require('../testingConstants');
+const { PASSED, FAILED, ASSERTIONS, TESTS } = require('./constants');
 
 class TestSuite {
     initializeTestData() {
@@ -20,11 +20,11 @@ class TestSuite {
     }
 
     getTestMethods() {
-        const context = this;
         return {
-            assert: new Assert(context).getMethodsWithContext(),
-            beforeEach: this.beforeEach.bind(context),
-            test: this.test.bind(context)
+            assert: new Assert(this).getMethodsWithContext(),
+            createSpy: context => new Spy(context),
+            beforeEach: this.beforeEach.bind(this),
+            test: this.test.bind(this),
         }
     }
 
@@ -38,9 +38,9 @@ class TestSuite {
     test(test, fn) {
         console.logTest(`Test: "${test}"`);
         this.beforeEachCallbacks.forEach(cb => cb());
-        const oldFailedTally = this.getTally(ASSERTIONS).failed;
+        const prevFailed = this.getTally(ASSERTIONS).failed;
         fn();
-        const verdict = oldFailedTally < this.getTally(ASSERTIONS).failed ? FAILED : PASSED;
+        const verdict = prevFailed < this.getTally(ASSERTIONS).failed ? FAILED : PASSED;
         this.incrementTestsTally(verdict);
         if (verdict === FAILED) {
             this.alertTestFailure(test);
@@ -156,8 +156,16 @@ class Assert {
 
     hasExpectedValues(actual, expected) {
         try {
+            const actualLen = Object.keys(actual).length;
+            const expectedLen = Object.keys(expected).length;
+            if (actualLen < expectedLen) {
+                throw `Missing ${expectedLen - actualLen} properties`;
+            }
+            if (actualLen !== 0 && expectedLen === 0) {
+                throw `Expected an empty object`;
+            }
             for (let key in expected) {
-                if (actual[key] !== expected[key]) {
+                if (!actual.hasOwnProperty(key) || actual[key] !== expected[key]) {
                     throw `"${actual[key]}" does not equal "${expected[key]}"`;
                 }
             }
@@ -202,6 +210,40 @@ class Assert {
             hasExpectedValues: hasExpectedValues.bind(this.context),
             exists: exists.bind(this.context),
             doesNotExist: doesNotExist.bind(this.context),
+        }
+    }
+}
+
+class Spy {
+    constructor(context) {
+        this.context = context;
+        this.report = {
+            name: '',
+            callCount: 0,
+            args: [],
+            returned: [],
+        };
+    }
+
+    getReport() {
+        return this.report;
+    }
+
+    updateReport(name, args, returned) {
+        const report = this.report;
+        this.report = { 
+            name,
+            args: [...report.args, [report.args.length, args]],
+            returned: [...report.returned, [report.returned.length, returned]],
+            callCount: ++report.callCount 
+        };
+    }
+
+    watch(fn) {
+        return (...args) => {
+            const returned = fn.call(this.context, ...args);
+            this.updateReport(fn.name, args, returned);
+            return returned;
         }
     }
 }
