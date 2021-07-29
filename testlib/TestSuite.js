@@ -1,4 +1,5 @@
 const { PASSED, FAILED, ASSERTIONS, TESTS } = require('./constants');
+const { getFixtureData } = require('./utils');
 
 class TestSuite {
     initializeTestData() {
@@ -13,6 +14,7 @@ class TestSuite {
             }
         }
         this.beforeEachCallbacks = [];
+        this.fixtures = getFixtureData();
     }
 
     getResults() {
@@ -32,7 +34,7 @@ class TestSuite {
         this.description = description;
         this.initializeTestData();
         console.logTest(`\nRunning tests for ${description} \n`);
-        fn(this.getTestMethods());
+        fn(this.getTestMethods(), this.fixtures);
     }
 
     test(test, fn) {
