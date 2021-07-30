@@ -41,7 +41,7 @@ function setCustomLogs() {
 /*
  * Recursively walk from the root directly and build a list of test files.
  */
-function findMatchingFiles(regex, dir = path.resolve(''), currPath = "") {
+function findMatchingFiles(regex, dir = path.resolve('')) {
     const skips = ['node_modules', '.git', 'testlib'];
     const files = [];
     fs.readdirSync(dir).forEach(file => {
@@ -49,19 +49,18 @@ function findMatchingFiles(regex, dir = path.resolve(''), currPath = "") {
         const isDirectory = fs.lstatSync(fullPath).isDirectory();
         const isSkipped = skips.some(skip => file.match(new RegExp(skip)));
         if (isDirectory && !isSkipped) {
-            const result = findMatchingFiles(regex, fullPath, `${currPath}/${file}`);
+            const result = findMatchingFiles(regex, fullPath);
             files.push(result)
             files.flat();
         } else if (!isDirectory && file.match(regex)) {
-            files.push(`${currPath}/${file}`);
+            files.push(fullPath)
         }
     });
     return files.flat();
 }
 
 function formatFixtureImports(files) {
-    const dir = path.resolve('');
-    const fixtures = files.map(file => require(dir + file));
+    const fixtures = files.map(file => require(file));
     return fixtures.reduce((obj, curr) => {
         obj[curr] = curr;
         return { ...obj, ...curr}
@@ -80,18 +79,18 @@ function getFixtureData() {
  */
 function getTestResults(args) {
     args = args.filter(arg => !arg.includes('-'));
-    const dir = path.resolve('');
     const testRe = /.test.js/;
-    let testFiles = findMatchingFiles(testRe, dir);
+    let testFiles = findMatchingFiles(testRe);
 
     if (args.length) {
         testFiles = testFiles.filter(file => args.some(arg => {
             arg = `${arg}.test.js`.toLowerCase();
+            // Get only full file name without path
             const fileSplit = file.split('/');
             return arg === fileSplit[fileSplit.length - 1].toLowerCase();
         }));
     }
-    return testFiles.map(file => require(dir + file))
+    return testFiles.map(file => require(file));
 }
 
 module.exports = {
