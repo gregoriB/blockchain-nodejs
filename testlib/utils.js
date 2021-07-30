@@ -49,15 +49,9 @@ function findMatchingFiles(regex, dir = path.resolve(''), currPath = "") {
         const isDirectory = fs.lstatSync(fullPath).isDirectory();
         const isSkipped = skips.some(skip => file.match(new RegExp(skip)));
         if (isDirectory && !isSkipped) {
-            currPath = `${currPath}/${file}`;
-            const result = findMatchingFiles(regex, fullPath, currPath);
+            const result = findMatchingFiles(regex, fullPath, `${currPath}/${file}`);
             files.push(result)
             files.flat();
-            // Back up if the folder is a dead end
-            if (!result.length) {
-                const currPathSplit = currPath.split('/');
-                currPath = currPathSplit.slice(0, currPathSplit.length - 1).join('/');
-            }
         } else if (!isDirectory && file.match(regex)) {
             files.push(`${currPath}/${file}`);
         }
