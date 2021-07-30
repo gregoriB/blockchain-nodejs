@@ -28,7 +28,7 @@ function disableConsoleMethod(method) {
 }
 
 /*
- * Create custom console log methods to be used automatically
+ * Create special console log methods to be used automatically
  * by the test framework. 
  */
 function setCustomLogs() {
@@ -46,7 +46,6 @@ function findMatchingFiles(regex, dir = path.resolve(''), currPath = "") {
     const files = [];
     fs.readdirSync(dir).forEach(file => {
         const fullPath = path.join(dir, file);
-        // const fullcurrPath = `${currPath}/${file}`;
         const isDirectory = fs.lstatSync(fullPath).isDirectory();
         const isSkipped = skips.some(skip => file.match(new RegExp(skip)));
         if (isDirectory && !isSkipped) {
@@ -100,7 +99,6 @@ function getTestResults(args) {
     }
     return testFiles.map(file => require(dir + file))
 }
-
 
 module.exports = {
     findMatchingFiles,
