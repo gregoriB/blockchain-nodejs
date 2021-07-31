@@ -86,8 +86,9 @@ function getTestResults(args) {
         testFiles = testFiles.filter(file => args.some(arg => {
             arg = `${arg}.test.js`.toLowerCase();
             // Get only full file name without path
-            const fileSplit = file.split('/');
-            return arg === fileSplit[fileSplit.length - 1].toLowerCase();
+            const fileSplit = file.split('\\');
+            const isMatch = arg === fileSplit[fileSplit.length - 1].toLowerCase();
+            return isMatch;
         }));
     }
     return testFiles.map(file => require(file));
