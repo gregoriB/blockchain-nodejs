@@ -1,5 +1,5 @@
 const { PASSED, FAILED, ASSERTIONS, TESTS } = require('./constants');
-const fixtures = require('./fixtures');
+const { getFunctionParams } = require('./utils');
 
 class TestSuite {
     initializeTestData() {
@@ -26,6 +26,7 @@ class TestSuite {
             createSpy: context => new Spy(context),
             beforeEach: this.beforeEach.bind(this),
             test: this.test.bind(this),
+            fixtureProvider: this.fixtureProvider
         }
     }
 
@@ -33,19 +34,28 @@ class TestSuite {
         this.description = description;
         this.initializeTestData();
         console.logTest(`\nRunning tests for ${description} \n`);
-        fn(this.getTestMethods(), fixtures);
+        fn(this.getTestMethods());
     }
 
     test(test, fn) {
         console.logTest(`Test: "${test}"`);
-        this.beforeEachCallbacks.forEach(cb => cb());
+        this.beforeEachCallbacks.forEach(cb => {
+            const args = this.getFixtureArgsFromParams(cb);
+            cb(...args);
+        });
         const prevFailed = this.getTally(ASSERTIONS).failed;
-        fn();
+        const args = this.getFixtureArgsFromParams(fn)
+        fn(...args);
         const verdict = prevFailed < this.getTally(ASSERTIONS).failed ? FAILED : PASSED;
         this.incrementTestsTally(verdict);
         if (verdict === FAILED) {
             this.alertTestFailure(test);
         }
+    }
+
+    getFixtureArgsFromParams(fn) {
+        const fixtures = require('./fixtures');
+        return getFunctionParams(fn).map(param => fixtures[param]);
     }
 
     alertTestFailure(test) {
@@ -55,6 +65,21 @@ class TestSuite {
     beforeEach(fn) {
         if (typeof fn === 'function') {
             this.beforeEachCallbacks.push(fn);
+        }
+    }
+
+    fixtureProvider(fn) {
+        return function(...args) {
+            const fixtures = require('./fixtures');
+            const params = getFunctionParams(fn);
+            // Add fixtures as the last argument if it is declared as a parameter.
+            if (params.length > args.length) {
+                args = params
+                    .map((_, i) => i < args.length ? args[i] : null)
+                    .slice(0, params.length - 1);
+                args.push(fixtures);
+            }
+            fn(...args);
         }
     }
 

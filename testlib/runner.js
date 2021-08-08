@@ -7,10 +7,10 @@ function init() {
     const args = process.argv.slice(2);
     applyFlags(args);
     const results = getTestResults(args);
-    runTests(results);
+    logResults(results);
 }
 
-function runTests(results) {
+function logResults(results) {
     const testSuite = new TestSuite();
     testSuite.logTestResults(results);
 }

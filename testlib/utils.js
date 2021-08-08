@@ -94,11 +94,19 @@ function getTestResults(args) {
     return testFiles.map(file => require(file));
 }
 
+function getFunctionParams(fn) {
+    const fnStr = fn.toString();
+    const open = fnStr.indexOf('(');
+    const close = fnStr.indexOf(')');
+    return fnStr.slice(open + 1, close).replace(/\s/g, '').split(',');
+}
+
 module.exports = {
     findMatchingFiles,
     formatFixtureImports,
     getFixtureData,
     applyFlags,
     setCustomLogs,
-    getTestResults
+    getTestResults,
+    getFunctionParams
 };
