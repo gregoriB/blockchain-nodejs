@@ -55,7 +55,13 @@ class TestSuite {
 
     getFixtureArgsFromParams(fn) {
         const fixtures = require('./fixtures');
-        return getFunctionParams(fn).map(param => fixtures[param]);
+        const params = getFunctionParams(fn);
+        return params.map(param => {
+            if (!fixtures.hasOwnProperty(param)) {
+                throw new Error(`${param} is not a valid fixture!`)
+            }
+            return fixtures[param];
+        });
     }
 
     alertTestFailure(test) {

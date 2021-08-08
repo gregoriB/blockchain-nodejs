@@ -94,11 +94,23 @@ function getTestResults(args) {
     return testFiles.map(file => require(file));
 }
 
+/*
+ * Get an array of params that were assigned to a function.
+ * Right now only works with arrow functions that have the parameter
+ * wrapped in parenthesis.
+ */
 function getFunctionParams(fn) {
     const fnStr = fn.toString();
     const open = fnStr.indexOf('(');
+    if (open !== 0) {
+        return [];
+    }
     const close = fnStr.indexOf(')');
-    return fnStr.slice(open + 1, close).replace(/\s/g, '').split(',');
+    return fnStr
+        .slice(open + 1, close)
+        .replace(/[\s]/g, '')
+        .split(',')
+        .filter(item => item !== '');
 }
 
 module.exports = {
