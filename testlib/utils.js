@@ -39,7 +39,8 @@ function setCustomLogs() {
 }
 
 /*
- * Recursively walk from the root directly and build a list of test files.
+ * Recursively walk from the root directly and build a list of files
+ * that match a regular expression.
  */
 function findMatchingFiles(regex, dir = path.resolve('')) {
     const skips = ['node_modules', '.git', 'testlib'];
@@ -96,19 +97,19 @@ function getTestResults(args) {
 
 /*
  * Get an array of params that were assigned to a function.
- * Right now only works with arrow functions that have the parameter
- * wrapped in parenthesis.
  */
 function getFunctionParams(fn) {
     const fnStr = fn.toString();
-    const open = fnStr.indexOf('(');
-    if (open !== 0) {
-        return [];
+    let open = fnStr.indexOf('(');
+    let close = fnStr.indexOf(')');
+    // If is arrow function without parenthesis around parameter
+    if (open !== 0 && fnStr.slice(0, 8) !== 'function') {
+        open = 0;
+        close = fnStr.indexOf('>') - 2;
     }
-    const close = fnStr.indexOf(')');
     return fnStr
-        .slice(open + 1, close)
-        .replace(/[\s]/g, '')
+        .slice(open, close)
+        .replace(/[\s()]/g, '')
         .split(',')
         .filter(item => item !== '');
 }

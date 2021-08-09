@@ -58,7 +58,7 @@ class TestSuite {
         const params = getFunctionParams(fn);
         return params.map(param => {
             if (!fixtures.hasOwnProperty(param)) {
-                throw new Error(`${param} is not a valid fixture!`)
+                throw new Error(`${param} does not exist as a fixture!`)
             }
             return fixtures[param];
         });
@@ -76,15 +76,12 @@ class TestSuite {
 
     fixtureProvider(fn) {
         return function(...args) {
-            const fixtures = require('./fixtures');
             const params = getFunctionParams(fn);
-            // Add fixtures as the last argument if it is declared as a parameter.
-            if (params.length > args.length) {
-                args = params
-                    .map((_, i) => i < args.length ? args[i] : null)
-                    .slice(0, params.length - 1);
-                args.push(fixtures);
-            }
+            const fixtures = require('./fixtures');
+            args = params
+                .map((_, i) => i < args.length ? args[i] : null)
+                .slice(0, params.length - 1);
+            args.push(fixtures);
             fn(...args);
         }
     }
