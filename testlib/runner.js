@@ -15,4 +15,4 @@ function logResults(results) {
     testSuite.logTestResults(results);
 }
 
-module.exports = init;
+init();
