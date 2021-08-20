@@ -4,12 +4,13 @@
   "description": "",
   "main": "app.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "tests": "npm explore testlib -- npm run tests"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "crypto-js": "^4.0.0",
-    "elliptic": "^6.5.4"
+    "crypto-js": "^4.1.1",
+    "elliptic": "^6.5.4",
+    "testlib": "git://github.com/gregoriB/testlib.git"
   }
 }
