@@ -182,4 +182,4 @@ testlib.run('Blockchain', (tools) => {
     });
 });
 
-module.exports = testlib.getResults();
+module.exports = testlib;

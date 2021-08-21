@@ -61,4 +61,4 @@ testlib.run('Block', (tools) => {
     });
 });
 
-module.exports = testlib.getResults();
+module.exports = testlib;

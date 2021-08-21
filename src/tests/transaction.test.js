@@ -17,7 +17,7 @@ testlib.run('Transaction', (tools) => {
         assert.hasExpectedKeys(transaction.generateTransactionDetails(), transactionExpectedKeys);
     });
 
-    test('Generates a hash', () => {
+    test('Generates a hash', () =>  {
         assert.exists(transaction.getHash());
     });
 
@@ -38,4 +38,4 @@ testlib.run('Transaction', (tools) => {
     });
 });
 
-module.exports = testlib.getResults();
+module.exports = testlib;
